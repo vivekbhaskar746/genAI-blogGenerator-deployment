@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Blog Generator - Login</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .auth-container { max-width: 400px; margin: 50px auto; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .app-container { display: none; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { color: #333; margin-bottom: 10px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+        .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        .btn { background: #667eea; color: white; padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; width: 100%; margin-bottom: 10px; }
+        .btn:hover { background: #5a67d8; }
+        .btn.secondary { background: #48bb78; }
+        .btn.secondary:hover { background: #38a169; }
+        .toggle-link { text-align: center; margin-top: 20px; color: #667eea; cursor: pointer; }
+        .user-info { background: #f7fafc; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .form-section { display: grid; grid-template-columns: 1fr 2fr; gap: 30px; }
+        .blog-content { background: #f9f9f9; padding: 20px; border-radius: 8px; min-height: 400px; white-space: pre-wrap; }
+        .metadata { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .metadata-item { background: #e3f2fd; padding: 10px; border-radius: 4px; text-align: center; }
+        .loading { text-align: center; padding: 40px; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .hidden { display: none; }
+        .error { background: #fed7d7; color: #c53030; padding: 15px; border-radius: 8px; margin: 10px 0; }
+        .success { background: #c6f6d5; color: #2d7d32; padding: 15px; border-radius: 8px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Authentication Section -->
+        <div id="authContainer" class="auth-container">
+            <div class="header">
+                <h1>🤖 AI Blog Generator</h1>
+                <p>Please login or register to continue</p>
+            </div>
+
+            <!-- Login Form -->
+            <div id="loginForm">
+                <div class="form-group">
+                    <label for="loginUsername">Username</label>
+                    <input type="text" id="loginUsername" placeholder="Enter username" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" placeholder="Enter password" required>
+                </div>
+                <button class="btn" onclick="login()">Login</button>
+                <div class="toggle-link" onclick="showRegister()">Don't have an account? Register here</div>
+            </div>
+
+            <!-- Register Form -->
+            <div id="registerForm" class="hidden">
+                <div class="form-group">
+                    <label for="regUsername">Username</label>
+                    <input type="text" id="regUsername" placeholder="Choose username" required>
+                </div>
+                <div class="form-group">
+                    <label for="regEmail">Email</label>
+                    <input type="email" id="regEmail" placeholder="Enter email" required>
+                </div>
+                <div class="form-group">
+                    <label for="regPassword">Password</label>
+                    <input type="password" id="regPassword" placeholder="Choose password" required>
+                </div>
+                <div class="form-group">
+                    <label for="regRole">Role</label>
+                    <select id="regRole">
+                        <option value="READER">Reader</option>
+                        <option value="MARKETER">Marketer</option>
+                        <option value="ADMIN">Admin</option>
+                    </select>
+                </div>
+                <button class="btn secondary" onclick="register()">Register</button>
+                <div class="toggle-link" onclick="showLogin()">Already have an account? Login here</div>
+            </div>
+
+            <div id="authMessage" class="hidden"></div>
+        </div>
+
+        <!-- Main Application -->
+        <div id="appContainer" class="app-container">
+            <div class="user-info">
+                <strong>Welcome, <span id="currentUser"></span>!</strong>
+                <button class="btn" onclick="logout()" style="float: right; width: auto; padding: 8px 16px; font-size: 14px;">Logout</button>
+                <div style="clear: both;"></div>
+            </div>
+
+            <div class="header">
+                <h1>🤖 AI Blog Generator</h1>
+                <p>Generate SEO-optimized blog articles using Nebius AI</p>
+            </div>
+
+            <div class="form-section">
+                <div class="form-panel">
+                    <h3>Blog Configuration</h3>
+                    
+                    <div class="form-group">
+                        <label for="keywords">Keywords *</label>
+                        <input type="text" id="keywords" placeholder="e.g., artificial intelligence" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="tone">Tone</label>
+                        <select id="tone">
+                            <option value="professional">Professional</option>
+                            <option value="casual">Casual</option>
+                            <option value="humorous">Humorous</option>
+                            <option value="technical">Technical</option>
+                            <option value="friendly">Friendly</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="wordCount">Word Count</label>
+                        <input type="number" id="wordCount" value="800" min="200" max="2000">
+                    </div>
+                    
+                    <button class="btn" id="generateBtn" onclick="generateBlog()">Generate Blog</button>
+                </div>
+
+                <div class="result-section">
+                    <div id="loadingSection" class="loading hidden">
+                        <div class="spinner"></div>
+                        <p>Generating your blog with Nebius AI...</p>
+                    </div>
+
+                    <div id="errorSection" class="error hidden">
+                        <div id="errorMessage"></div>
+                    </div>
+
+                    <div id="successSection" class="success hidden">
+                        <div id="successMessage"></div>
+                    </div>
+
+                    <div id="resultSection" class="hidden">
+                        <h3>Generated Blog Article</h3>
+                        
+                        <div class="metadata">
+                            <div class="metadata-item">
+                                <strong>SEO Score</strong>
+                                <div id="seoScore">-</div>
+                            </div>
+                            <div class="metadata-item">
+                                <strong>Reading Time</strong>
+                                <div id="readingTime">-</div>
+                            </div>
+                            <div class="metadata-item">
+                                <strong>Word Count</strong>
+                                <div id="actualWordCount">-</div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="blogTitle">Title</label>
+                            <input type="text" id="blogTitle" readonly>
+                        </div>
+
+                        <div class="blog-content" id="blogContent">
+                            Blog content will appear here...
+                        </div>
+
+                        <button class="btn" onclick="openInNewWindow()" style="margin-top: 15px;">Open in New Window</button>
+                        <button class="btn secondary" onclick="saveBlog()" style="margin-top: 15px;">Save Blog</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const NEBIUS_API_TOKEN = 'eyJhbGciOiJIUzI1NiIsImtpZCI6IlV6SXJWd1h0dnprLVRvdzlLZWstc0M1akptWXBvX1VaVkxUZlpnMDRlOFUiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJnb29nbGUtb2F1dGgyfDEwNDYxMDk0MDM5NTQwNDcxNTE3MiIsInNjb3BlIjoib3BlbmlkIG9mZmxpbmVfYWNjZXNzIiwiaXNzIjoiYXBpX2tleV9pc3N1ZXIiLCJhdWQiOlsiaHR0cHM6Ly9uZWJpdXMtaW5mZXJlbmNlLmV1LmF1dGgwLmNvbS9hcGkvdjIvIl0sImV4cCI6MTkxODM1OTAyMCwidXVpZCI6IjAxOTlmMGE1LWM3OTAtNzUzZS1hNWU2LWJjMTM1OTNmZmE0NyIsIm5hbWUiOiJVbm5hbWVkIGtleSIsImV4cGlyZXNfYXQiOiIyMDMwLTEwLTE2VDA1OjMwOjIwKzAwMDAifQ.EfstBQ7r0wXw6HljKTscrlaEzP1iHtrCfhQgizsf2KY';
+        const NEBIUS_API_URL = 'https://api.studio.nebius.ai/v1/chat/completions';
+        const BACKEND_URL = 'http://localhost:9090/api';
+
+        // Check if user is already logged in
+        window.onload = function() {
+            const user = localStorage.getItem('currentUser');
+            if (user) {
+                showApp(JSON.parse(user));
+            }
+        };
+
+        function showLogin() {
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('registerForm').classList.add('hidden');
+        }
+
+        function showRegister() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.remove('hidden');
+        }
+
+        async function login() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!username || !password) {
+                showAuthMessage('Please fill in all fields', 'error');
+                return;
+            }
+
+            try {
+                // Try backend first, fallback to localStorage
+                const response = await fetch(`${BACKEND_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    showApp(data.user);
+                } else {
+                    throw new Error('Backend not available');
+                }
+            } catch (error) {
+                // Fallback to localStorage
+                const users = JSON.parse(localStorage.getItem('users') || '[]');
+                const user = users.find(u => u.username === username && u.password === password);
+                
+                if (user) {
+                    showApp(user);
+                } else {
+                    showAuthMessage('Invalid credentials', 'error');
+                }
+            }
+        }
+
+        async function register() {
+            const username = document.getElementById('regUsername').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            const role = document.getElementById('regRole').value;
+
+            if (!username || !email || !password) {
+                showAuthMessage('Please fill in all fields', 'error');
+                return;
+            }
+
+            const newUser = { username, email, password, role, createdAt: new Date().toISOString() };
+
+            try {
+                // Try backend first
+                const response = await fetch(`${BACKEND_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newUser)
+                });
+
+                if (response.ok) {
+                    showAuthMessage('Registration successful! Please login.', 'success');
+                    showLogin();
+                } else {
+                    throw new Error('Backend not available');
+                }
+            } catch (error) {
+                // Fallback to localStorage
+                const users = JSON.parse(localStorage.getItem('users') || '[]');
+                
+                if (users.find(u => u.username === username)) {
+                    showAuthMessage('Username already exists', 'error');
+                    return;
+                }
+
+                users.push(newUser);
+                localStorage.setItem('users', JSON.stringify(users));
+                showAuthMessage('Registration successful! Please login.', 'success');
+                showLogin();
+            }
+        }
+
+        function showApp(user) {
+            localStorage.setItem('currentUser', JSON.stringify(user));
+            window.location.href = 'frontend/index.html';
+        }
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'auth-blog-generator.html';
+        }
+
+        function showAuthMessage(message, type) {
+            const messageDiv = document.getElementById('authMessage');
+            messageDiv.textContent = message;
+            messageDiv.className = type;
+            messageDiv.classList.remove('hidden');
+            setTimeout(() => messageDiv.classList.add('hidden'), 3000);
+        }
+
+        // Blog generation functions (same as before)
+        async function generateBlog() {
+            const keywords = document.getElementById('keywords').value.trim();
+            const tone = document.getElementById('tone').value;
+            const wordCount = parseInt(document.getElementById('wordCount').value);
+
+            if (!keywords) {
+                showError('Please enter keywords');
+                return;
+            }
+
+            showLoading();
+            hideMessages();
+
+            try {
+                const contentPrompt = `Write a ${tone} blog article about "${keywords}" that is exactly ${wordCount} words. Include proper headings using ## for sections, engaging content, and make it SEO-friendly. Structure it with an introduction, 3-4 main sections, and conclusion.`;
+                
+                const contentResponse = await callNebiusAPI(contentPrompt, "meta-llama/Llama-3.3-70B-Instruct");
+                
+                if (!contentResponse) {
+                    throw new Error('Failed to generate content');
+                }
+
+                const titlePrompt = `Generate a catchy, SEO-optimized title for a blog article about "${keywords}" in a ${tone} tone. Keep it under 60 characters and make it engaging.`;
+                
+                const titleResponse = await callNebiusAPI(titlePrompt, "meta-llama/Meta-Llama-3.1-8B-Instruct-fast");
+                const title = titleResponse ? titleResponse.trim().replace(/['"]/g, '') : `The Ultimate Guide to ${keywords}`;
+
+                showSuccess('Blog generated successfully with Nebius AI!');
+                displayBlog(title, contentResponse, wordCount);
+                
+            } catch (error) {
+                console.error('Nebius API Error:', error);
+                showError(`Nebius API Error: ${error.message}`);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function callNebiusAPI(prompt, model = "meta-llama/Llama-3.3-70B-Instruct") {
+            try {
+                const response = await fetch(NEBIUS_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${NEBIUS_API_TOKEN}`
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: [{ role: "user", content: prompt }],
+                        temperature: 0.7,
+                        max_tokens: 2048
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error?.message || `HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error.message);
+                }
+                
+                if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+                    throw new Error('No content generated from Nebius API');
+                }
+
+                return data.choices[0].message.content;
+                
+            } catch (error) {
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    throw new Error('Network error - check your internet connection');
+                }
+                throw error;
+            }
+        }
+
+        function displayBlog(title, content, targetWordCount) {
+            const actualWords = content.split(/\s+/).length;
+            const readingTime = Math.ceil(actualWords / 200);
+            const seoScore = calculateSEOScore(title, content, document.getElementById('keywords').value);
+
+            document.getElementById('blogTitle').value = title;
+            document.getElementById('blogContent').textContent = content;
+            document.getElementById('seoScore').textContent = seoScore + '/100';
+            document.getElementById('readingTime').textContent = readingTime + ' min';
+            document.getElementById('actualWordCount').textContent = actualWords;
+
+            document.getElementById('resultSection').classList.remove('hidden');
+
+            window.generatedBlog = { title, content, seoScore, readingTime, actualWords };
+        }
+
+        function calculateSEOScore(title, content, keywords) {
+            let score = 0;
+            
+            if (title.length >= 30 && title.length <= 60) score += 25;
+            if (title.toLowerCase().includes(keywords.toLowerCase())) score += 25;
+            
+            const wordCount = content.split(/\s+/).length;
+            if (wordCount >= 300) score += 20;
+            if (wordCount >= 800) score += 10;
+            
+            const keywordMatches = (content.toLowerCase().match(new RegExp(keywords.toLowerCase(), 'g')) || []).length;
+            const density = (keywordMatches / wordCount) * 100;
+            if (density >= 1 && density <= 3) score += 20;
+            
+            return Math.min(100, score);
+        }
+
+        function openInNewWindow() {
+            if (!window.generatedBlog) return;
+            
+            const blog = window.generatedBlog;
+            const newWindow = window.open('', '_blank', 'width=900,height=700,scrollbars=yes');
+            
+            const formattedContent = blog.content
+                .replace(/## (.*)/g, '<h2>$1</h2>')
+                .replace(/### (.*)/g, '<h3>$1</h3>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/\n/g, '<br>')
+                .replace(/^/, '<p>')
+                .replace(/$/, '</p>');
+            
+            newWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>${blog.title}</title>
+                    <style>
+                        body { font-family: Georgia, serif; max-width: 800px; margin: 0 auto; padding: 40px 20px; line-height: 1.6; color: #333; }
+                        h1 { color: #1976d2; border-bottom: 3px solid #1976d2; padding-bottom: 10px; }
+                        h2 { color: #555; margin-top: 30px; border-left: 4px solid #1976d2; padding-left: 15px; }
+                        h3 { color: #666; margin-top: 25px; }
+                        .metadata { background: #f0f7ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #1976d2; }
+                        .metadata span { margin-right: 25px; font-weight: bold; color: #1976d2; }
+                        .content { font-size: 16px; line-height: 1.8; }
+                        p { margin-bottom: 15px; }
+                        .ai-badge { background: #ff6b35; color: white; padding: 5px 10px; border-radius: 15px; font-size: 12px; }
+                    </style>
+                </head>
+                <body>
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <span class="ai-badge">Generated by Nebius AI</span>
+                    </div>
+                    <h1>${blog.title}</h1>
+                    <div class="metadata">
+                        <span>📊 SEO Score: ${blog.seoScore}/100</span>
+                        <span>⏱️ Reading Time: ${blog.readingTime} min</span>
+                        <span>📝 Words: ${blog.actualWords}</span>
+                    </div>
+                    <div class="content">${formattedContent}</div>
+                </body>
+                </html>
+            `);
+            
+            newWindow.document.close();
+        }
+
+        async function saveBlog() {
+            if (!window.generatedBlog) return;
+            
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            const blog = {
+                ...window.generatedBlog,
+                author: user.username,
+                createdAt: new Date().toISOString()
+            };
+
+            try {
+                // Try backend first
+                const response = await fetch(`${BACKEND_URL}/blogs/save`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(blog)
+                });
+
+                if (response.ok) {
+                    showSuccess('Blog saved successfully!');
+                } else {
+                    throw new Error('Backend not available');
+                }
+            } catch (error) {
+                // Fallback to localStorage
+                const blogs = JSON.parse(localStorage.getItem('userBlogs') || '[]');
+                blogs.push(blog);
+                localStorage.setItem('userBlogs', JSON.stringify(blogs));
+                showSuccess('Blog saved locally!');
+            }
+        }
+
+        function showLoading() {
+            document.getElementById('loadingSection').classList.remove('hidden');
+            document.getElementById('resultSection').classList.add('hidden');
+            document.getElementById('generateBtn').disabled = true;
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingSection').classList.add('hidden');
+            document.getElementById('generateBtn').disabled = false;
+        }
+
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorSection').classList.remove('hidden');
+        }
+
+        function showSuccess(message) {
+            document.getElementById('successMessage').textContent = message;
+            document.getElementById('successSection').classList.remove('hidden');
+        }
+
+        function hideMessages() {
+            document.getElementById('errorSection').classList.add('hidden');
+            document.getElementById('successSection').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

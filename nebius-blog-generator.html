@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nebius AI Blog Generator</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header { text-align: center; margin-bottom: 30px; }
+        .form-section { display: grid; grid-template-columns: 1fr 2fr; gap: 30px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        .btn { background: #1976d2; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        .btn:hover { background: #1565c0; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        .result-section { background: #f9f9f9; padding: 20px; border-radius: 8px; }
+        .blog-content { background: white; padding: 20px; border-radius: 4px; border: 1px solid #ddd; min-height: 400px; white-space: pre-wrap; }
+        .metadata { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .metadata-item { background: #e3f2fd; padding: 10px; border-radius: 4px; text-align: center; }
+        .loading { text-align: center; padding: 40px; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #1976d2; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .hidden { display: none; }
+        .error { background: #ffebee; color: #c62828; padding: 15px; border-radius: 4px; margin: 10px 0; }
+        .success { background: #e8f5e8; color: #2e7d32; padding: 15px; border-radius: 4px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Nebius AI Blog Generator</h1>
+            <p>Generate SEO-optimized blog articles using Nebius AI</p>
+        </div>
+
+        <div class="form-section">
+            <div class="form-panel">
+                <h3>Blog Configuration</h3>
+                
+                <div class="form-group">
+                    <label for="keywords">Keywords *</label>
+                    <input type="text" id="keywords" placeholder="e.g., artificial intelligence" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="tone">Tone</label>
+                    <select id="tone">
+                        <option value="professional">Professional</option>
+                        <option value="casual">Casual</option>
+                        <option value="humorous">Humorous</option>
+                        <option value="technical">Technical</option>
+                        <option value="friendly">Friendly</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="wordCount">Word Count</label>
+                    <input type="number" id="wordCount" value="800" min="200" max="2000">
+                </div>
+                
+                <button class="btn" id="generateBtn" onclick="generateBlogWithNebius()">Generate with Nebius AI</button>
+            </div>
+
+            <div class="result-section">
+                <div id="loadingSection" class="loading hidden">
+                    <div class="spinner"></div>
+                    <p>Generating your blog with Nebius AI...</p>
+                </div>
+
+                <div id="errorSection" class="error hidden">
+                    <div id="errorMessage"></div>
+                </div>
+
+                <div id="successSection" class="success hidden">
+                    <div id="successMessage"></div>
+                </div>
+
+                <div id="resultSection" class="hidden">
+                    <h3>Generated Blog Article</h3>
+                    
+                    <div class="metadata">
+                        <div class="metadata-item">
+                            <strong>SEO Score</strong>
+                            <div id="seoScore">-</div>
+                        </div>
+                        <div class="metadata-item">
+                            <strong>Reading Time</strong>
+                            <div id="readingTime">-</div>
+                        </div>
+                        <div class="metadata-item">
+                            <strong>Word Count</strong>
+                            <div id="actualWordCount">-</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="blogTitle">Title</label>
+                        <input type="text" id="blogTitle" readonly>
+                    </div>
+
+                    <div class="blog-content" id="blogContent">
+                        Blog content will appear here...
+                    </div>
+
+                    <button class="btn" onclick="openInNewWindow()" style="margin-top: 15px;">Open in New Window</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const NEBIUS_API_TOKEN = 'eyJhbGciOiJIUzI1NiIsImtpZCI6IlV6SXJWd1h0dnprLVRvdzlLZWstc0M1akptWXBvX1VaVkxUZlpnMDRlOFUiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJnb29nbGUtb2F1dGgyfDEwNDYxMDk0MDM5NTQwNDcxNTE3MiIsInNjb3BlIjoib3BlbmlkIG9mZmxpbmVfYWNjZXNzIiwiaXNzIjoiYXBpX2tleV9pc3N1ZXIiLCJhdWQiOlsiaHR0cHM6Ly9uZWJpdXMtaW5mZXJlbmNlLmV1LmF1dGgwLmNvbS9hcGkvdjIvIl0sImV4cCI6MTkxODM1OTAyMCwidXVpZCI6IjAxOTlmMGE1LWM3OTAtNzUzZS1hNWU2LWJjMTM1OTNmZmE0NyIsIm5hbWUiOiJVbm5hbWVkIGtleSIsImV4cGlyZXNfYXQiOiIyMDMwLTEwLTE2VDA1OjMwOjIwKzAwMDAifQ.EfstBQ7r0wXw6HljKTscrlaEzP1iHtrCfhQgizsf2KY';
+        const NEBIUS_API_URL = 'https://api.studio.nebius.ai/v1/chat/completions';
+
+        async function generateBlogWithNebius() {
+            const keywords = document.getElementById('keywords').value.trim();
+            const tone = document.getElementById('tone').value;
+            const wordCount = parseInt(document.getElementById('wordCount').value);
+
+            if (!keywords) {
+                showError('Please enter keywords');
+                return;
+            }
+
+            showLoading();
+            hideMessages();
+
+            try {
+                // Generate blog content
+                const contentPrompt = `Write a ${tone} blog article about "${keywords}" that is exactly ${wordCount} words. Include proper headings using ## for sections, engaging content, and make it SEO-friendly. Structure it with an introduction, 3-4 main sections, and conclusion. Make sure the content is informative and well-researched.`;
+                
+                const contentResponse = await callNebiusAPI(contentPrompt, "meta-llama/Llama-3.3-70B-Instruct");
+                
+                if (!contentResponse) {
+                    throw new Error('Failed to generate content');
+                }
+
+                // Generate title
+                const titlePrompt = `Generate a catchy, SEO-optimized title for a blog article about "${keywords}" in a ${tone} tone. Keep it under 60 characters and make it engaging.`;
+                
+                const titleResponse = await callNebiusAPI(titlePrompt, "meta-llama/Meta-Llama-3.1-8B-Instruct-fast");
+                const title = titleResponse ? titleResponse.trim().replace(/['"]/g, '') : `The Ultimate Guide to ${keywords}`;
+
+                showSuccess('Blog generated successfully with Nebius AI!');
+                displayBlog(title, contentResponse, wordCount);
+                
+            } catch (error) {
+                console.error('Nebius API Error:', error);
+                showError(`Nebius API Error: ${error.message}`);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function callNebiusAPI(prompt, model = "gpt-4") {
+            try {
+                const response = await fetch(NEBIUS_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${NEBIUS_API_TOKEN}`
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: [
+                            {
+                                role: "user",
+                                content: prompt
+                            }
+                        ],
+                        temperature: 0.7,
+                        max_tokens: 2048
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error?.message || `HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error.message);
+                }
+                
+                if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+                    throw new Error('No content generated from Nebius API');
+                }
+
+                return data.choices[0].message.content;
+                
+            } catch (error) {
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    throw new Error('Network error - check your internet connection');
+                }
+                throw error;
+            }
+        }
+
+        function displayBlog(title, content, targetWordCount) {
+            const actualWords = content.split(/\s+/).length;
+            const readingTime = Math.ceil(actualWords / 200);
+            const seoScore = calculateSEOScore(title, content, document.getElementById('keywords').value);
+
+            document.getElementById('blogTitle').value = title;
+            document.getElementById('blogContent').textContent = content;
+            document.getElementById('seoScore').textContent = seoScore + '/100';
+            document.getElementById('readingTime').textContent = readingTime + ' min';
+            document.getElementById('actualWordCount').textContent = actualWords;
+
+            document.getElementById('resultSection').classList.remove('hidden');
+
+            window.generatedBlog = { title, content, seoScore, readingTime, actualWords };
+        }
+
+        function calculateSEOScore(title, content, keywords) {
+            let score = 0;
+            
+            if (title.length >= 30 && title.length <= 60) score += 25;
+            if (title.toLowerCase().includes(keywords.toLowerCase())) score += 25;
+            
+            const wordCount = content.split(/\s+/).length;
+            if (wordCount >= 300) score += 20;
+            if (wordCount >= 800) score += 10;
+            
+            const keywordMatches = (content.toLowerCase().match(new RegExp(keywords.toLowerCase(), 'g')) || []).length;
+            const density = (keywordMatches / wordCount) * 100;
+            if (density >= 1 && density <= 3) score += 20;
+            
+            return Math.min(100, score);
+        }
+
+        function openInNewWindow() {
+            if (!window.generatedBlog) return;
+            
+            const blog = window.generatedBlog;
+            const newWindow = window.open('', '_blank', 'width=900,height=700,scrollbars=yes');
+            
+            const formattedContent = blog.content
+                .replace(/## (.*)/g, '<h2>$1</h2>')
+                .replace(/### (.*)/g, '<h3>$1</h3>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/\n/g, '<br>')
+                .replace(/^/, '<p>')
+                .replace(/$/, '</p>');
+            
+            newWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>${blog.title}</title>
+                    <style>
+                        body { font-family: Georgia, serif; max-width: 800px; margin: 0 auto; padding: 40px 20px; line-height: 1.6; color: #333; }
+                        h1 { color: #1976d2; border-bottom: 3px solid #1976d2; padding-bottom: 10px; }
+                        h2 { color: #555; margin-top: 30px; border-left: 4px solid #1976d2; padding-left: 15px; }
+                        h3 { color: #666; margin-top: 25px; }
+                        .metadata { background: #f0f7ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #1976d2; }
+                        .metadata span { margin-right: 25px; font-weight: bold; color: #1976d2; }
+                        .content { font-size: 16px; line-height: 1.8; }
+                        p { margin-bottom: 15px; }
+                        @media print { body { margin: 0; padding: 20px; } }
+                        .ai-badge { background: #ff6b35; color: white; padding: 5px 10px; border-radius: 15px; font-size: 12px; }
+                    </style>
+                </head>
+                <body>
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <span class="ai-badge">Generated by Nebius AI</span>
+                    </div>
+                    <h1>${blog.title}</h1>
+                    <div class="metadata">
+                        <span>📊 SEO Score: ${blog.seoScore}/100</span>
+                        <span>⏱️ Reading Time: ${blog.readingTime} min</span>
+                        <span>📝 Words: ${blog.actualWords}</span>
+                    </div>
+                    <div class="content">${formattedContent}</div>
+                </body>
+                </html>
+            `);
+            
+            newWindow.document.close();
+        }
+
+        function showLoading() {
+            document.getElementById('loadingSection').classList.remove('hidden');
+            document.getElementById('resultSection').classList.add('hidden');
+            document.getElementById('generateBtn').disabled = true;
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingSection').classList.add('hidden');
+            document.getElementById('generateBtn').disabled = false;
+        }
+
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorSection').classList.remove('hidden');
+        }
+
+        function showSuccess(message) {
+            document.getElementById('successMessage').textContent = message;
+            document.getElementById('successSection').classList.remove('hidden');
+        }
+
+        function hideMessages() {
+            document.getElementById('errorSection').classList.add('hidden');
+            document.getElementById('successSection').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

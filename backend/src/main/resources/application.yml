@@ -1,0 +1,30 @@
+server:
+  port: 9090
+
+spring:
+  datasource:
+    url: jdbc:mysql://mysql-service:3306/contentplatform?useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+nebius:
+  api:
+    token: eyJhbGciOiJIUzI1NiIsImtpZCI6IlV6SXJWd1h0dnprLVRvdzlLZWstc0M1akptWXBvX1VaVkxUZlpnMDRlOFUiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJnb29nbGUtb2F1dGgyfDEwNDYxMDk0MDM5NTQwNDcxNTE3MiIsInNjb3BlIjoib3BlbmlkIG9mZmxpbmVfYWNjZXNzIiwiaXNzIjoiYXBpX2tleV9pc3N1ZXIiLCJhdWQiOlsiaHR0cHM6Ly9uZWJpdXMtaW5mZXJlbmNlLmV1LmF1dGgwLmNvbS9hcGkvdjIvIl0sImV4cCI6MTkxODM1OTAyMCwidXVpZCI6IjAxOTlmMGE1LWM3OTAtNzUzZS1hNWU2LWJjMTM1OTNmZmE0NyIsIm5hbWUiOiJVbm5hbWVkIGtleSIsImV4cGlyZXNfYXQiOiIyMDMwLTEwLTE2VDA1OjMwOjIwKzAwMDAifQ.EfstBQ7r0wXw6HljKTscrlaEzP1iHtrCfhQgizsf2KY
+    url: https://api.studio.nebius.ai/v1/chat/completions
+
+jwt:
+  secret: mySecretKey123456789
+  expiration: 86400000
+
+logging:
+  level:
+    com.contentplatform: DEBUG

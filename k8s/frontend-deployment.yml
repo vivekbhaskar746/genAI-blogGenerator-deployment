@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: content-platform-frontend
+  labels:
+    app: content-platform-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: content-platform-frontend
+  template:
+    metadata:
+      labels:
+        app: content-platform-frontend
+    spec:
+      containers:
+      - name: frontend
+        image: 975373241855.dkr.ecr.us-east-1.amazonaws.com/content-platform-frontend:latest
+        ports:
+        - containerPort: 80
+        

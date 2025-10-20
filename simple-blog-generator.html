@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Blog Generator</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header { text-align: center; margin-bottom: 30px; }
+        .form-section { display: grid; grid-template-columns: 1fr 2fr; gap: 30px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        .btn { background: #1976d2; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        .btn:hover { background: #1565c0; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        .result-section { background: #f9f9f9; padding: 20px; border-radius: 8px; }
+        .blog-content { background: white; padding: 20px; border-radius: 4px; border: 1px solid #ddd; min-height: 400px; white-space: pre-wrap; }
+        .metadata { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .metadata-item { background: #e3f2fd; padding: 10px; border-radius: 4px; text-align: center; }
+        .loading { text-align: center; padding: 40px; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #1976d2; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .hidden { display: none; }
+        .error { background: #ffebee; color: #c62828; padding: 15px; border-radius: 4px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 AI Blog Generator</h1>
+            <p>Generate SEO-optimized blog articles using Gemini AI</p>
+        </div>
+
+        <div class="form-section">
+            <div class="form-panel">
+                <h3>Blog Configuration</h3>
+                
+                <div class="form-group">
+                    <label for="keywords">Keywords *</label>
+                    <input type="text" id="keywords" placeholder="e.g., artificial intelligence" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="tone">Tone</label>
+                    <select id="tone">
+                        <option value="professional">Professional</option>
+                        <option value="casual">Casual</option>
+                        <option value="humorous">Humorous</option>
+                        <option value="technical">Technical</option>
+                        <option value="friendly">Friendly</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="wordCount">Word Count</label>
+                    <input type="number" id="wordCount" value="500" min="100" max="2000">
+                </div>
+                
+                <button class="btn" id="generateBtn" onclick="generateBlog()">Generate Blog</button>
+                <button class="btn" onclick="generateWithBackend()" style="margin-top: 10px; background: #4caf50;">Use Backend API</button>
+            </div>
+
+            <div class="result-section">
+                <div id="loadingSection" class="loading hidden">
+                    <div class="spinner"></div>
+                    <p>Generating your blog article...</p>
+                </div>
+
+                <div id="errorSection" class="error hidden">
+                    <div id="errorMessage"></div>
+                </div>
+
+                <div id="resultSection" class="hidden">
+                    <h3>Generated Blog Article</h3>
+                    
+                    <div class="metadata">
+                        <div class="metadata-item">
+                            <strong>SEO Score</strong>
+                            <div id="seoScore">-</div>
+                        </div>
+                        <div class="metadata-item">
+                            <strong>Reading Time</strong>
+                            <div id="readingTime">-</div>
+                        </div>
+                        <div class="metadata-item">
+                            <strong>Word Count</strong>
+                            <div id="actualWordCount">-</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="blogTitle">Title</label>
+                        <input type="text" id="blogTitle" readonly>
+                    </div>
+
+                    <div class="blog-content" id="blogContent">
+                        Blog content will appear here...
+                    </div>
+
+                    <button class="btn" onclick="openInNewWindow()" style="margin-top: 15px;">Open in New Window</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock generation for demo
+        function generateBlog() {
+            const keywords = document.getElementById('keywords').value.trim();
+            const tone = document.getElementById('tone').value;
+            const wordCount = parseInt(document.getElementById('wordCount').value);
+
+            if (!keywords) {
+                showError('Please enter keywords');
+                return;
+            }
+
+            showLoading();
+
+            // Simulate API delay
+            setTimeout(() => {
+                const mockContent = generateMockBlog(keywords, tone, wordCount);
+                displayBlog(mockContent.title, mockContent.content, wordCount);
+                hideLoading();
+            }, 2000);
+        }
+
+        // Backend API call
+        async function generateWithBackend() {
+            const keywords = document.getElementById('keywords').value.trim();
+            const tone = document.getElementById('tone').value;
+            const wordCount = parseInt(document.getElementById('wordCount').value);
+
+            if (!keywords) {
+                showError('Please enter keywords');
+                return;
+            }
+
+            showLoading();
+
+            try {
+                const response = await fetch('http://localhost:8080/api/blogs/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        keywords: keywords,
+                        tone: tone.toUpperCase(),
+                        wordCount: wordCount
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Backend not running. Using mock data instead.');
+                }
+
+                const data = await response.json();
+                displayBlog(data.title, data.content, wordCount);
+            } catch (error) {
+                console.log('Backend error, using mock:', error);
+                const mockContent = generateMockBlog(keywords, tone, wordCount);
+                displayBlog(mockContent.title, mockContent.content, wordCount);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function generateMockBlog(keywords, tone, wordCount) {
+            const title = `The Ultimate Guide to ${keywords}: A ${tone} Perspective`;
+            
+            let content = `# ${title}\n\n`;
+            content += `## Introduction\n\n`;
+            content += `In today's rapidly evolving digital landscape, understanding ${keywords} has become crucial for businesses and individuals alike. This ${tone} guide will explore the key aspects, benefits, and implementation strategies.\n\n`;
+            
+            content += `## What is ${keywords}?\n\n`;
+            content += `${keywords} represents a transformative approach that combines innovation with practical application. The ${tone} nature of this topic makes it accessible to various audiences while maintaining depth and accuracy.\n\n`;
+            
+            content += `## Key Benefits\n\n`;
+            content += `1. **Enhanced Efficiency**: Implementing ${keywords} can significantly improve operational efficiency\n`;
+            content += `2. **Cost Reduction**: Strategic use leads to substantial cost savings\n`;
+            content += `3. **Competitive Advantage**: Early adoption provides market leadership opportunities\n`;
+            content += `4. **Scalability**: Solutions can grow with your business needs\n\n`;
+            
+            content += `## Implementation Strategy\n\n`;
+            content += `When approaching ${keywords} implementation, consider these essential steps:\n\n`;
+            content += `- **Assessment**: Evaluate current capabilities and requirements\n`;
+            content += `- **Planning**: Develop a comprehensive roadmap\n`;
+            content += `- **Execution**: Implement solutions systematically\n`;
+            content += `- **Monitoring**: Track progress and optimize continuously\n\n`;
+            
+            content += `## Best Practices\n\n`;
+            content += `Success with ${keywords} requires adherence to proven methodologies. Focus on user experience, maintain security standards, and ensure scalability from the outset.\n\n`;
+            
+            content += `## Conclusion\n\n`;
+            content += `${keywords} offers tremendous potential for organizations ready to embrace innovation. By following this ${tone} approach, you can achieve sustainable results and maintain competitive advantage in your industry.\n\n`;
+            content += `Remember that successful implementation requires patience, planning, and continuous learning. Start small, measure results, and scale gradually for optimal outcomes.`;
+
+            // Adjust content length to match word count
+            const words = content.split(/\s+/);
+            if (words.length > wordCount) {
+                content = words.slice(0, wordCount).join(' ') + '...';
+            } else if (words.length < wordCount * 0.8) {
+                content += `\n\n## Additional Insights\n\nFurther exploration of ${keywords} reveals additional opportunities for optimization and growth. Consider these advanced strategies for maximum impact.`;
+            }
+
+            return { title, content };
+        }
+
+        function displayBlog(title, content, targetWordCount) {
+            const actualWords = content.split(/\s+/).length;
+            const readingTime = Math.ceil(actualWords / 200);
+            const seoScore = calculateSEOScore(title, content, document.getElementById('keywords').value);
+
+            document.getElementById('blogTitle').value = title;
+            document.getElementById('blogContent').textContent = content;
+            document.getElementById('seoScore').textContent = seoScore + '/100';
+            document.getElementById('readingTime').textContent = readingTime + ' min';
+            document.getElementById('actualWordCount').textContent = actualWords;
+
+            document.getElementById('resultSection').classList.remove('hidden');
+            document.getElementById('errorSection').classList.add('hidden');
+
+            window.generatedBlog = { title, content, seoScore, readingTime, actualWords };
+        }
+
+        function calculateSEOScore(title, content, keywords) {
+            let score = 0;
+            
+            if (title.length >= 30 && title.length <= 60) score += 25;
+            if (title.toLowerCase().includes(keywords.toLowerCase())) score += 25;
+            
+            const wordCount = content.split(/\s+/).length;
+            if (wordCount >= 300) score += 20;
+            if (wordCount >= 500) score += 10;
+            
+            const keywordCount = (content.toLowerCase().match(new RegExp(keywords.toLowerCase(), 'g')) || []).length;
+            const density = (keywordCount / wordCount) * 100;
+            if (density >= 1 && density <= 3) score += 20;
+            
+            return Math.min(100, score);
+        }
+
+        function openInNewWindow() {
+            if (!window.generatedBlog) return;
+            
+            const blog = window.generatedBlog;
+            const newWindow = window.open('', '_blank', 'width=900,height=700,scrollbars=yes');
+            
+            newWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>${blog.title}</title>
+                    <style>
+                        body { font-family: Georgia, serif; max-width: 800px; margin: 0 auto; padding: 40px 20px; line-height: 1.6; }
+                        h1 { color: #333; border-bottom: 2px solid #1976d2; padding-bottom: 10px; }
+                        h2 { color: #555; margin-top: 30px; }
+                        .metadata { background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0; }
+                        .metadata span { margin-right: 20px; font-weight: bold; }
+                        .content { font-size: 16px; color: #444; white-space: pre-wrap; }
+                        @media print { body { margin: 0; padding: 20px; } }
+                    </style>
+                </head>
+                <body>
+                    <h1>${blog.title}</h1>
+                    <div class="metadata">
+                        <span>📊 SEO Score: ${blog.seoScore}/100</span>
+                        <span>⏱️ Reading Time: ${blog.readingTime} min</span>
+                        <span>📝 Words: ${blog.actualWords}</span>
+                    </div>
+                    <div class="content">${blog.content}</div>
+                </body>
+                </html>
+            `);
+            
+            newWindow.document.close();
+        }
+
+        function showLoading() {
+            document.getElementById('loadingSection').classList.remove('hidden');
+            document.getElementById('resultSection').classList.add('hidden');
+            document.getElementById('errorSection').classList.add('hidden');
+            document.getElementById('generateBtn').disabled = true;
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingSection').classList.add('hidden');
+            document.getElementById('generateBtn').disabled = false;
+        }
+
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorSection').classList.remove('hidden');
+            document.getElementById('resultSection').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

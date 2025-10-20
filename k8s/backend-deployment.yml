@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: content-platform-backend
+  labels:
+    app: content-platform-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: content-platform-backend
+  template:
+    metadata:
+      labels:
+        app: content-platform-backend
+    spec:
+      containers:
+      - name: backend
+        image: 975373241855.dkr.ecr.us-east-1.amazonaws.com/content-platform-backend:latest
+        ports:
+        - containerPort: 9090
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "prod"
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:mysql://mysql-service:3306/contentplatform?useSSL=false&allowPublicKeyRetrieval=true"
+        - name: SPRING_DATASOURCE_USERNAME
+          value: "root"
+        - name: SPRING_DATASOURCE_PASSWORD
+          value: "password"
+       
