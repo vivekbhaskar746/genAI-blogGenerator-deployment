@@ -24,7 +24,7 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                git url: 'https://github.com/your-repo/content-platform.git', branch: 'main'
+                git url: 'https://github.com/vivekbhaskar746/genAI-blogGenerator-deployment.git', branch: 'main'
             }
         }
 
