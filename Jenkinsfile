@@ -4,7 +4,7 @@ pipeline {
     environment {
         AWS_REGION = 'us-east-1'
         EKS_CLUSTER = 'content-platform-cluster'
-        AWS_ACCOUNT_ID = '975373241855'
+        AWS_ACCOUNT_ID = '565105396926'
         BACKEND_IMAGE = 'content-platform-backend'
         FRONTEND_IMAGE = 'content-platform-frontend'
         VERSION = 'latest'
