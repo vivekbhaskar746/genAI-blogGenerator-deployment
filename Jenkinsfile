@@ -37,13 +37,13 @@ pipeline {
 }
 
         stage('Build Frontend') {
-            steps {
-                dir('frontend') {
-                    sh 'npm ci'
-                    sh 'npm run build'
-                }
-            }
+    steps {
+        dir('frontend') {
+            sh 'npm install'
+            sh 'npm run build'
         }
+    }
+}
 
         stage('Archive Artifacts') {
             steps {
