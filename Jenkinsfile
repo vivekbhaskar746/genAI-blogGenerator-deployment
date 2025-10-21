@@ -28,14 +28,13 @@ pipeline {
             }
         }
 
-        stage('Build Backend') {
-            steps {
-                dir('backend') {
-                    sh 'chmod +x mvnw || true'
-                    sh './mvnw clean package -Dmaven.test.skip=true'
-                }
-            }
+       stage('Build Backend') {
+    steps {
+        dir('backend') {
+            sh 'mvn clean package -Dmaven.test.skip=true'
         }
+    }
+}
 
         stage('Build Frontend') {
             steps {
