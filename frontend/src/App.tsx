@@ -8,7 +8,7 @@ import BlogGenerator from './pages/BlogGenerator.tsx';
 import NewsFeed from './pages/NewsFeed.tsx';
 import EmailBuilder from './pages/EmailBuilder.tsx';
 import Login from './pages/Login.tsx';
-import { AuthProvider, useAuth } from './contexts/AuthContext.tsx';
+import { AuthProvider} from './contexts/AuthProvider.tsx';
 
 const theme = createTheme({
   palette: {
