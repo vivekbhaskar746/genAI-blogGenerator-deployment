@@ -9,6 +9,7 @@ import NewsFeed from './pages/NewsFeed.tsx';
 import EmailBuilder from './pages/EmailBuilder.tsx';
 import Login from './pages/Login.tsx';
 import { AuthProvider} from './contexts/AuthProvider.tsx';
+import { useAuth } from './contexts/useAuth.tsx'
 
 const theme = createTheme({
   palette: {
