@@ -18,7 +18,7 @@ import {
 } from '@mui/material';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-import { blogService } from '../services/api';
+import { blogService } from '../services/api.tsx';
 
 interface BlogGenerationRequest {
   keywords: string;
