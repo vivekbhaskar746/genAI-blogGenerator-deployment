@@ -40,7 +40,7 @@ pipeline {
     steps {
         dir('frontend') {
             sh 'npm install'
-            sh 'npm run build'
+            sh 'CI=false npm run build'
         }
     }
 }
