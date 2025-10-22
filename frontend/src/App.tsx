@@ -3,12 +3,12 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Navbar from './components/Navbar.tsx';
-import Dashboard from './pages/Dashboard';
-import BlogGenerator from './pages/BlogGenerator';
-import NewsFeed from './pages/NewsFeed';
-import EmailBuilder from './pages/EmailBuilder';
-import Login from './pages/Login';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import Dashboard from './pages/Dashboard.tsx';
+import BlogGenerator from './pages/BlogGenerator.tsx';
+import NewsFeed from './pages/NewsFeed.tsx';
+import EmailBuilder from './pages/EmailBuilder.tsx';
+import Login from './pages/Login.tsx';
+import { AuthProvider, useAuth } from './contexts/AuthContext.tsx';
 
 const theme = createTheme({
   palette: {
