@@ -1,4 +1,5 @@
-FROM node:18-alpine
+# Stage 1: Build the frontend
+FROM node:18-alpine AS builder
 
 WORKDIR /app
 
@@ -8,9 +9,11 @@ RUN npm ci --only=production
 COPY . .
 RUN npm run build
 
+# Stage 2: Serve with nginx
 FROM nginx:alpine
-COPY --from=0 /app/dist /usr/share/nginx/html
-COPY --from=0 /app/build /usr/share/nginx/html
+
+# Copy the build output to nginx's public folder
+COPY --from=builder /app/build /usr/share/nginx/html
 
 EXPOSE 80
 
