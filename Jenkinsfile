@@ -14,6 +14,8 @@ pipeline {
         ECS_CLUSTER = 'content-platform-ecs-cluster'
         BACKEND_SERVICE_NAME = 'content-platform-backend-service'
         FRONTEND_SERVICE_NAME = 'content-platform-frontend-service'
+        BACKEND_TASK_FAMILY = 'content-platform-backend-task'
+        FRONTEND_TASK_FAMILY = 'content-platform-frontend-task'
     }
 
     options {
@@ -99,13 +101,13 @@ pipeline {
                     set -e
 
                     # Update backend task definition
-                    BACKEND_TASK_DEF=$(aws ecs describe-task-definition --task-definition $BACKEND_SERVICE_NAME)
+                    BACKEND_TASK_DEF=$(aws ecs describe-task-definition --task-definition $BACKEND_TASK_FAMILY)
                     BACKEND_NEW_DEF=$(echo $BACKEND_TASK_DEF | jq --arg IMAGE "$BACKEND_ECR_REPO:$VERSION" '.taskDefinition | .containerDefinitions[0].image = $IMAGE | {family: .family, containerDefinitions: .containerDefinitions, executionRoleArn: .executionRoleArn, networkMode: .networkMode, requiresCompatibilities: .requiresCompatibilities, cpu: .cpu, memory: .memory}')
                     BACKEND_REVISION=$(aws ecs register-task-definition --cli-input-json "$BACKEND_NEW_DEF" | jq -r '.taskDefinition.taskDefinitionArn')
                     aws ecs update-service --cluster $ECS_CLUSTER --service $BACKEND_SERVICE_NAME --task-definition $BACKEND_REVISION
 
                     # Update frontend task definition
-                    FRONTEND_TASK_DEF=$(aws ecs describe-task-definition --task-definition $FRONTEND_SERVICE_NAME)
+                    FRONTEND_TASK_DEF=$(aws ecs describe-task-definition --task-definition $FRONTEND_TASK_FAMILY)
                     FRONTEND_NEW_DEF=$(echo $FRONTEND_TASK_DEF | jq --arg IMAGE "$FRONTEND_ECR_REPO:$VERSION" '.taskDefinition | .containerDefinitions[0].image = $IMAGE | {family: .family, containerDefinitions: .containerDefinitions, executionRoleArn: .executionRoleArn, networkMode: .networkMode, requiresCompatibilities: .requiresCompatibilities, cpu: .cpu, memory: .memory}')
                     FRONTEND_REVISION=$(aws ecs register-task-definition --cli-input-json "$FRONTEND_NEW_DEF" | jq -r '.taskDefinition.taskDefinitionArn')
                     aws ecs update-service --cluster $ECS_CLUSTER --service $FRONTEND_SERVICE_NAME --task-definition $FRONTEND_REVISION
